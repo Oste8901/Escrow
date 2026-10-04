@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Create and manage token-funded freelance escrows."
+    />
+    <title>Escrow — Onchain freelance payments</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Escrow home">
+        <span class="brand-mark">E</span>
+        <span>escrow<span class="brand-period">.</span></span>
+      </a>
+      <div class="wallet-area">
+        <span id="network-label" class="network-label">Wallet not connected</span>
+        <button id="connect-wallet" class="button button-dark" type="button">
+          Connect wallet
+        </button>
+      </div>
+    </header>
+
+    <main class="page">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">ONCHAIN WORK, PAID WITH CONFIDENCE</p>
+          <h1>Good work deserves<br />a safe landing.</h1>
+          <p class="hero-copy">
+            Put payment in escrow, agree on the work, and release funds when
+            it’s done.
+          </p>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="coin">E</div>
+          <span class="spark spark-one">✳</span>
+          <span class="spark spark-two">✦</span>
+        </div>
+      </section>
+
+      <section class="setup panel" aria-labelledby="setup-heading">
+        <div>
+          <p class="eyebrow">GET STARTED</p>
+          <h2 id="setup-heading">Connect to your escrow contract</h2>
+          <p class="muted">
+            Deploy with Foundry, then paste the contract address here. It’s
+            saved in this browser.
+          </p>
+        </div>
+        <form id="contract-form" class="contract-form">
+          <label for="contract-address">Contract address</label>
+          <div class="input-action">
+            <input
+              id="contract-address"
+              name="contract-address"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="0x..."
+              required
+            />
+            <button class="button button-accent" type="submit">Load</button>
+          </div>
+        </form>
+      </section>
+
+      <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+
+      <section class="workspace">
+        <div class="create-panel panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">NEW AGREEMENT</p>
+              <h2>Create an escrow</h2>
+            </div>
+            <span class="step-mark">01</span>
+          </div>
+          <p class="muted">
+            Funds are transferred from your wallet and held by the contract
+            until the agreement is completed, cancelled, or resolved.
+          </p>
+          <form id="create-form" class="create-form">
+            <label for="freelancer">Freelancer wallet</label>
+            <input
+              id="freelancer"
+              name="freelancer"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="0x..."
+              required
+            />
+            <div class="form-row">
+              <div class="field">
+                <label for="token">Payment token</label>
+                <select id="token" name="token" required disabled>
+                  <option value="">Load a contract first</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="amount">Amount</label>
+                <input
+                  id="amount"
+                  name="amount"
+                  type="text"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                  autocomplete="off"
+                  required
+                />
+              </div>
+            </div>
+            <button
+              id="create-escrow"
+              class="button button-accent button-wide"
+              type="submit"
+              disabled
+            >
+              Create escrow
+            </button>
+            <p class="fine-print">
+              You’ll approve the token transfer and confirm the escrow
+              transaction in your wallet.
+            </p>
+          </form>
+        </div>
+
+        <div class="list-panel panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">YOUR CONTRACT</p>
+              <h2>Escrows <span id="escrow-count" class="count">—</span></h2>
+            </div>
+            <button
+              id="refresh-escrows"
+              class="button button-light"
+              type="button"
+              disabled
+            >
+              Refresh
+            </button>
+          </div>
+          <div id="escrow-list" class="escrow-list">
+            <div class="empty-state">
+              <span class="empty-icon">↗</span>
+              <h3>Your work, at a glance.</h3>
+              <p>Connect your wallet and load a contract to see escrows.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <span>Escrow · Direct wallet-to-contract interactions</span>
+        <span>Never share your recovery phrase or private key.</span>
+      </footer>
+    </main>
+
+  </body>
+</html>
