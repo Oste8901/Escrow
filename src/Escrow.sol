@@ -11,6 +11,7 @@ contract Escrow {
     error Not_Escrow_Client();
     error Escrow_NotActive();
     error Not_In_Escrow();
+    error Not_valid_Address();
 
     enum Status {
         Active,
@@ -105,7 +106,8 @@ contract Escrow {
         EscrowDetails storage escrow_es = escrows[esc_id];
         require(escrow_es.status == Status.Disputed, "No Dispute");
         uint256 amount = escrow_es.amount;
-        if (winner == escrow_es.client) {
+       if(winner == escrow_es.client || winner == escrow_es.freelancer){
+         if (winner == escrow_es.client) {
             dep_amt[escrow_es.client] -= amount;
             bool transfer_success = IERC20(escrow_es.token).transfer(escrow_es.client, amount);
             if (!transfer_success) {
@@ -120,6 +122,11 @@ contract Escrow {
         }
 
         escrow_es.status = Status.Completed;
+       }
+
+       else {
+        revert Not_valid_Address();
+       }
     }
 
     function cancelEscrow(uint256 job_id) public {

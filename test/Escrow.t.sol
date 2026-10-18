@@ -138,6 +138,18 @@ contract EscrowTest is Test {
         vm.stopPrank();
     }
 
+    function test_ResolveDispute_FailsAgain() public {
+        vm.startPrank(CLIENT);
+        ERC20Mock(weth_).approve(address(es_), Test_Payment_Amount);
+        es_.createEscrow(EMPLOYEE, weth_, Test_Payment_Amount);
+        es_.raiseDispute(0);
+        vm.stopPrank();
+        vm.startPrank(es_.retrieve_owner());
+        vm.expectRevert();
+        es_.resolveDispute(0, client);
+        vm.stopPrank();
+}
+
     function testResolveDispute_Client() public {
         vm.startPrank(CLIENT);
         ERC20Mock(weth_).approve(address(es_), Test_Payment_Amount);
