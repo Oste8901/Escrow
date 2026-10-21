@@ -48,7 +48,7 @@ let owner;
 let tokens = [];
 
 const queryAddress = new URLSearchParams(window.location.search).get("contract");
-const savedAddress = queryAddress || localStorage.getItem("escrow-contract");
+const savedAddress = queryAddress || localStorage.getItem("escrow-contract") || "0xF393899540864efEA51169F11066F4FEAE6CD271";
 if (savedAddress) elements.address.value = savedAddress;
 
 function showNotice(message, kind = "info") {

@@ -43,7 +43,7 @@ contract HelperConfig is Script {
             wethUsdPriceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306, // ETH / USD
             wbtcUsdPriceFeed: 0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43,
             weth: 0xdd13E55209Fd76AfE204dBda4007C227904f0a81,
-            wbtc: address(0), // DeployEscrow creates a test mock on Sepolia.
+            wbtc: address(0), // The Sepolia demo supports WETH only.
             deployerKey: vm.envUint("PRIVATE_KEY")
         });
         return sepoliaNetworkConfig;

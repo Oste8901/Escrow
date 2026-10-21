@@ -75,19 +75,54 @@ Sepolia (chain ID `11155111`).
 
    Confirm the chain ID prints `11155111` before deploying.
 4. Deploy the contracts from that same terminal. `--slow` waits between
-   transactions and avoids overwhelming RPCs that limit in-flight requests:
+   transactions and avoids overwhelming RPCs that limit in-flight requests.
+   The Foundry config enables Solidity optimization to reduce the deployed
+   contract bytecode size. The gas estimate multiplier provides additional
+   headroom for Sepolia's contract code storage cost:
 
    ```sh
    forge script script/DeployEscrow.s.sol:DeployEscrow \
      --rpc-url "$SEPOLIA_RPC_URL" \
      --broadcast \
-     --slow
+     --slow \
+     --gas-estimate-multiplier 500
    ```
 
    The script uses `PRIVATE_KEY` from `.env` for deployment. It prints
-   **Escrow deployed at** and both supported token addresses. Save those
-   addresses; each deployment has new addresses. The second token is a test-only
-   mock token. Do not deploy this project to Ethereum mainnet.
+   **Escrow deployed at** and the supported token address. Save the escrow
+   address only after the broadcast succeeds. On Sepolia, the demo supports
+   Sepolia WETH only. Do not deploy this project to Ethereum mainnet.
+
+   **Alternative direct deployment (`forge create`):**
+   If `forge script` encounters simulation issues, code storage out-of-gas errors, or RPC timeout issues, you can deploy the contract directly with `forge create`:
+
+   ```sh
+   forge create src/Escrow.sol:Escrow \
+     --rpc-url "$SEPOLIA_RPC_URL" \
+     --private-key "$PRIVATE_KEY" \
+     --broadcast \
+     --constructor-args "[0xdd13E55209Fd76AfE204dBda4007C227904f0a81]" "[0x694AA1769357215DE4FAC081bf1f309aDC325306]"
+   ```
+   *(Note: Ensure `--broadcast` comes before `--constructor-args` so Foundry does not consume it as a constructor argument).*
+
+### Troubleshooting Deployment Issues
+
+- **Contract code storage out of gas (`ErrCodeStoreOutOfGas`):**
+  Ensure your `foundry.toml` targets the `shanghai` EVM version with the optimizer enabled to prevent Cancun/Prague opcode incompatibilities with Sepolia testnet nodes:
+  ```toml
+  [profile.default]
+  evm_version = "shanghai"
+  optimizer = true
+  optimizer_runs = 200
+  ```
+- **EIP-7702 Account Delegation Conflict:**
+  If your deployer wallet was previously used in account abstraction experiments, check its bytecode with `cast code $DEPLOYER_ADDRESS --rpc-url "$SEPOLIA_RPC_URL"`. If it returns delegation bytecode (`0xef0100...`), standard top-level contract creation will fail. Revoke delegation before deploying:
+  ```sh
+  cast send $DEPLOYER_ADDRESS \
+    --auth 0x0000000000000000000000000000000000000000 \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$SEPOLIA_RPC_URL"
+  ```
 5. Verify the escrow address printed by the successful broadcast. Replace the
    placeholder with that address:
 
@@ -100,45 +135,48 @@ Sepolia (chain ID `11155111`).
    on an address shown only in the simulation summary—use the successful
    broadcast output.
 
-The Sepolia config uses Sepolia WETH and deploys a mock ERC-20 as the second
-demo token. The mock is not backed by BTC or real value. To mint mock tokens
-to your MetaMask account for testing, run these commands from the repository
-root in a terminal where `SEPOLIA_RPC_URL` is set. Replace both address
-placeholders with the mock token address printed by deployment and your
-MetaMask account address:
+The Sepolia demo supports Sepolia WETH only. This is a test asset with no
+real-world value. The frontend reads the token from the loaded escrow contract,
+so it appears in the app when you load the contract.
 
-```sh
-set -a
-source .env
-set +a
-cast send MOCK_TOKEN_ADDRESS \
-  "mint(address,uint256)" METAMASK_ACCOUNT_ADDRESS 100000000000000000000 \
-  --rpc-url "$SEPOLIA_RPC_URL" \
-  --private-key "$PRIVATE_KEY"
-```
+### How to Get Sepolia WETH in MetaMask
 
-This mints 100 mock tokens (18 decimals) to the specified Sepolia address.
-Only use the test deployer key for this demo.
-
-### WETH in MetaMask
-
-The supported WETH token on Sepolia is:
+The supported WETH token on Sepolia is the canonical Sepolia WETH9 contract:
 
 ```text
 0xdd13E55209Fd76AfE204dBda4007C227904f0a81
 ```
 
-This is Sepolia test WETH, not mainnet WETH, and it has no real-world value.
-The frontend reads the token from the loaded escrow contract, so you can
-select it in the app without importing it into MetaMask. To see its token
-balance in MetaMask, switch MetaMask to **Sepolia**, open **Import tokens**,
-choose **Custom token** if prompted, paste the address above, and confirm.
+This is Sepolia test WETH, not mainnet WETH, and has no real-world value. ETH and WETH are distinct: Sepolia ETH pays gas, while WETH is the ERC-20 token deposited into an escrow.
 
-ETH and WETH are distinct: Sepolia ETH pays network gas, while WETH is the ERC-20
-token deposited into an escrow. To create a WETH escrow, the connected MetaMask
-account needs Sepolia WETH. Obtain test WETH by wrapping Sepolia test ETH using
-a trusted Sepolia-compatible WETH interface or faucet; do not use a mainnet
-wrapping site or send mainnet funds.
+#### Step 1: Import WETH into MetaMask
+1. Open MetaMask and ensure the active network is **Sepolia**.
+2. Select the **Tokens** (or Assets) tab and click **Import tokens** at the bottom.
+3. Choose **Custom token** and paste the address:
+   `0xdd13E55209Fd76AfE204dBda4007C227904f0a81`
+4. Token Symbol (`WETH`) and Decimals (`18`) will auto-populate. Click **Next** / **Import**.
+
+#### Step 2: Wrap Sepolia ETH into WETH
+
+You can wrap Sepolia ETH into WETH using any of the following methods:
+
+- **Method A: Direct Send in MetaMask (Fastest in Browser)**
+  1. In MetaMask on Sepolia, click **Send**.
+  2. Paste the WETH contract address: `0xdd13E55209Fd76AfE204dBda4007C227904f0a81`.
+  3. Enter the amount of Sepolia ETH you want to wrap (e.g. `0.02` ETH).
+  4. Confirm the transaction. The WETH contract receives the ETH and automatically issues the identical amount of WETH to your account.
+
+- **Method B: Using Foundry `cast` (Fastest in Terminal)**
+  Run the deposit function directly from your terminal:
+  ```sh
+  cast send 0xdd13E55209Fd76AfE204dBda4007C227904f0a81 "deposit()" \
+    --value 0.05ether \
+    --private-key "$PRIVATE_KEY" \
+    --rpc-url "$SEPOLIA_RPC_URL"
+  ```
+
+- **Method C: Using Uniswap on Sepolia**
+  Visit [app.uniswap.org](https://app.uniswap.org), connect MetaMask on Sepolia, and swap Sepolia ETH for WETH (1:1 with no slippage).
 
 ## Start the frontend
 
@@ -171,8 +209,7 @@ network will not work on Sepolia.
   launch or production escrow service.
 - The escrow contract stores price-feed addresses, but does not currently read
   prices from them.
-- Sepolia WETH and the demo mock token are test assets; the mock token has no
-  real value.
+- The Sepolia demo supports Sepolia WETH, a test asset with no real-world value.
 - The frontend loads ethers.js from jsDelivr and fonts from Google Fonts, so
   those external services must be reachable in the browser.
 - Never use a real-funds wallet or reuse its private key for this demo.
