@@ -62,10 +62,8 @@ Sepolia (chain ID `11155111`).
    Create the file from the repository root with an editor, or run
    `nano .env` and add that line. `.env` is ignored by Git. Never commit it or
    paste the key into the frontend.
-3. Obtain a Sepolia RPC endpoint from an RPC provider. Open a terminal in the
-   cloned repository and set the endpoint. The following public endpoint was
-   used for this demo; public endpoints may be rate-limited, so you can replace
-   it with your own provider URL:
+3. Obtain a Sepolia RPC endpoint. Open a terminal in the cloned repository and
+   set the endpoint. You can start with the default public endpoint:
 
    ```sh
    cd Escrow
@@ -73,7 +71,19 @@ Sepolia (chain ID `11155111`).
    cast chain-id --rpc-url "$SEPOLIA_RPC_URL"
    ```
 
-   Confirm the chain ID prints `11155111` before deploying.
+   **Alternative RPC (if experiencing rate limits or RPC troubles):**
+   Public endpoints can occasionally be congested, rate-limited, or unstable. If you run into deployment timeouts or connection issues with the default RPC, obtain a free dedicated Sepolia endpoint from [Alchemy](https://www.alchemy.com/):
+   - Sign up at Alchemy and create an app on **Ethereum Sepolia**.
+   - Copy your HTTPS URL (format: `https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY`).
+   - Set the Alchemy RPC URL:
+     ```sh
+     export SEPOLIA_RPC_URL="https://eth-sepolia.g.alchemy.com/v2/YOUR_API_KEY"
+     ```
+
+   Confirm the chain ID prints `11155111` before deploying:
+   ```sh
+   cast chain-id --rpc-url "$SEPOLIA_RPC_URL"
+   ```
 4. Deploy the contracts from that same terminal. `--slow` waits between
    transactions and avoids overwhelming RPCs that limit in-flight requests.
    The Foundry config enables Solidity optimization to reduce the deployed
